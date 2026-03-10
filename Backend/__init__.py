@@ -6,7 +6,7 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from .config import config
 
-FRONT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
+FRONT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
 
 #Inicializar extensiones
 db      = SQLAlchemy()
@@ -47,12 +47,12 @@ def create_app(env="default"):
     def health():
         return jsonify({"status": "ok", "message": "MemoRetos API corriendo ✅"})
 
-    @app.route("/")
-    def index():
-        return send_from_directory(FRONT_DIR, "login.html")
-
-    @app.route("/<path:filename>")
-    def front(filename):
-        return send_from_directory(FRONT_DIR, filename)
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def index(path):
+        file_path = os.path.join(FRONT_DIR, path)
+        if path and os.path.exists(file_path):
+            return send_from_directory(FRONT_DIR, path)
+        return send_from_directory(FRONT_DIR, "index.html")
 
     return app
