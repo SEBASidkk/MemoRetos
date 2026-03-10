@@ -3,6 +3,9 @@ node_modules/
 frontend/dist/
 frontend/.vite/
 
+# Base de datos local
+*.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
