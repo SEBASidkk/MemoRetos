@@ -1,4 +1,4 @@
-const BASE = "http://localhost:5000";
+const BASE = "";
 
 function headers(token) {
   const h = { "Content-Type": "application/json" };
