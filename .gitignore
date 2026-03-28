@@ -1,7 +1,12 @@
 # Frontend
 node_modules/
 frontend/dist/
-frontend/.vite/
+frontend/.angular/
+
+# Claude Code / Agent skills
+.claude/
+.agents/
+skills-lock.json
 
 # Base de datos local
 *.db

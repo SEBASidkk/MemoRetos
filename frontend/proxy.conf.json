@@ -1,0 +1,6 @@
+{
+  "/auth": { "target": "http://localhost:5000", "secure": false },
+  "/dashboard": { "target": "http://localhost:5000", "secure": false },
+  "/memoretos": { "target": "http://localhost:5000", "secure": false },
+  "/groups": { "target": "http://localhost:5000", "secure": false }
+}
