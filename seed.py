@@ -142,7 +142,35 @@ with app.app_context():
     db.session.commit()
     print("Grupo creado con 5 estudiantes y 2 memoretos asignados.")
 
+    from datetime import date, timedelta
+    estudiantes = [sebas, flor, santiago, ximena, carlos]
+    memos = [memo1, memo2, memo3]
+    import random
+    random.seed(42)
+    answers = []
+    base_date = date(2025, 3, 1)
+    for i, est in enumerate(estudiantes):
+        for j, memo in enumerate(memos):
+            for k in range(4):
+                day_offset = i * 3 + j * 5 + k * 7
+                score_map = {"easy": random.randint(800, 1000), "medium": random.randint(600, 800), "hard": random.randint(350, 600)}
+                time_map  = {"easy": random.randint(30, 90),    "medium": random.randint(80, 150),  "hard": random.randint(130, 230)}
+                answers.append(PlayerAnswer(
+                    user_id=est.id,
+                    memoreto_id=memo.id,
+                    respuesta_json="{}",
+                    resuelto=True,
+                    score=score_map[memo.dificultad],
+                    time_seconds=time_map[memo.dificultad],
+                    intentos=random.randint(1, 3),
+                    submitted_at=base_date + timedelta(days=day_offset % 30),
+                ))
+    db.session.add_all(answers)
+    db.session.commit()
+    print(f"{len(answers)} player_answers creados.")
+
     print("\n=== DATOS DE PRUEBA LISTOS ===")
+
     print("Usuarios (password: password123):")
     for u in users:
         print(f"  {u.rol:12s}  {u.username:16s}  score={u.total_score}")

@@ -68,7 +68,8 @@ export class PlotlyChartComponent {
 
   private async loadAndRender() {
     if (!isPlatformBrowser(this.platformId)) return;
-    this.plotly = await import('plotly.js-cartesian-dist') as any;
+    const mod = await import('plotly.js-cartesian-dist') as any;
+    this.plotly = mod.default ?? mod;
     this.render();
   }
 
