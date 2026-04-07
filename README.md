@@ -1,6 +1,6 @@
 # MemoRetos
 
-Sistema educativo interactivo de puzzles matemáticos. Combina un **dashboard web** (React + Vite) para docentes con un **videojuego en Unity** para estudiantes, comunicados a través de una **API REST** en Flask.
+Sistema educativo interactivo de puzzles matemáticos. Combina un **dashboard web** (Astro + React) para docentes con un **videojuego en Unity** para estudiantes, comunicados a través de una **API REST** en Flask.
 
 ---
 
@@ -8,10 +8,9 @@ Sistema educativo interactivo de puzzles matemáticos. Combina un **dashboard we
 
 | Herramienta | Versión mínima | Verificar con |
 |---|---|---|
-| Python | 3.10+ | `python --version` |
-| Node.js | 18+ | `node --version` |
-| npm | 9+ | `npm --version` |
-| conda (opcional) | cualquiera | `conda --version` |
+| Python | 3.10+ | `python3 --version` |
+| Node.js | 22+ | `node --version` |
+| npm | 10+ | `npm --version` |
 
 ---
 
@@ -34,7 +33,7 @@ conda activate memoretos
 
 **O con venv:**
 ```bash
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate        # macOS / Linux
 venv\Scripts\activate           # Windows
 ```
@@ -42,7 +41,7 @@ venv\Scripts\activate           # Windows
 ### 3. Instalar dependencias Python
 
 ```bash
-pip install flask flask-sqlalchemy flask-migrate flask-jwt-extended flask-cors python-dotenv pymysql
+pip install -r requirements.txt
 ```
 
 ### 4. Instalar dependencias del frontend
@@ -57,12 +56,12 @@ cd ..
 
 ## Primer arranque
 
-### 5. Poblar la base de datos con datos de prueba
+### 5. Inicializar y poblar la base de datos
 
 Desde la raíz del proyecto:
 
 ```bash
-python seed.py
+python3 seed.py
 ```
 
 Esto crea `backend/memoretos.db` con:
@@ -91,8 +90,8 @@ Se necesitan **dos terminales abiertas en paralelo**.
 
 ```bash
 # Desde la raíz del proyecto
-conda activate memoretos    # o source venv/bin/activate
-python run.py
+conda activate memoretos    # o: source venv/bin/activate
+python3 run.py
 ```
 
 El servidor queda en: `http://127.0.0.1:5000`
@@ -100,17 +99,25 @@ El servidor queda en: `http://127.0.0.1:5000`
 Verificar que está corriendo:
 ```bash
 curl http://127.0.0.1:5000/health
-# → {"message": "MemoRetos API corriendo", "status": "ok"}
+# → {"message": "MemoRetos API corriendo ✅", "status": "ok"}
 ```
 
 ### Terminal 2 — Frontend (Dashboard Web)
 
+**Modo desarrollo** (con hot-reload):
 ```bash
 cd frontend
 npm run dev
 ```
 
-El dashboard queda en: `http://localhost:5173`
+**Modo producción** (requiere build previo):
+```bash
+cd frontend
+npm run build
+node dist/server/entry.mjs
+```
+
+El dashboard queda en: `http://localhost:4321`
 
 Abrir en el navegador e iniciar sesión con `profe_test` / `password123`.
 
@@ -122,9 +129,10 @@ Abrir en el navegador e iniciar sesión con `profe_test` / `password123`.
 MemoRetos/
 ├── run.py                  <- Punto de entrada del backend
 ├── seed.py                 <- Script para poblar la BD con datos de prueba
+├── requirements.txt        <- Dependencias Python
 ├── backend/
 │   ├── __init__.py         <- Factory de la app Flask
-│   ├── config.py           <- Configuracion (BD, JWT, CORS)
+│   ├── config.py           <- Configuración (BD, JWT, CORS)
 │   ├── memoretos.db        <- Base de datos SQLite (se crea con seed.py)
 │   └── app/
 │       ├── models/
@@ -137,22 +145,35 @@ MemoRetos/
 │           ├── auth.py         /auth/login|register|logout|me
 │           ├── game.py         /session/start|end  /game/session/event
 │           ├── answers.py      /answers  /answer/history
-│           ├── dashboard.py    /dashboard/ranking
+│           ├── dashboard.py    /dashboard/ranking  /dashboard/stats/...
 │           ├── memoretos.py    /memoretos/...
-│           └── groups.py       /groups/...
+│           ├── groups.py       /groups/...
+│           └── graficas.py     /graficas
 └── frontend/
+    ├── astro.config.mjs
     ├── package.json
     └── src/
-        ├── pages/          <- Login, MemoEditor, Estadisticas, Grupos...
-        ├── components/     <- TopBar, MemoCanvas
-        ├── context/        <- AuthContext (JWT)
-        ├── utils/          <- solver.js (CSP backtracking)
-        └── api.js          <- Cliente HTTP centralizado
+        ├── lib/
+        │   ├── api.ts          <- Cliente HTTP (llama al backend)
+        │   ├── types.ts        <- Interfaces TypeScript compartidas
+        │   ├── canvas-utils.ts <- Utilidades del canvas de figuras
+        │   ├── solver.ts       <- Solver CSP (backtracking)
+        │   └── plotly-theme.ts <- Tema para gráficas Plotly
+        ├── pages/
+        │   ├── index.astro         <- Login
+        │   ├── dashboard.astro     <- Panel principal
+        │   ├── estadisticas.astro  <- Gráficas y ranking
+        │   ├── configuracion.astro <- Configuración de cuenta
+        │   ├── memoretos/          <- CRUD de memoretos
+        │   └── grupos/             <- Gestión de grupos
+        ├── components/react/   <- Componentes interactivos (MemoCanvas, etc.)
+        ├── layouts/            <- AppLayout
+        └── stores/             <- Estado global (nanostores)
 ```
 
 ---
 
-## Endpoints principales de la API
+## Endpoints de la API
 
 Todos los endpoints (excepto login, register y ranking global) requieren el header:
 ```
@@ -166,100 +187,137 @@ curl -X POST http://127.0.0.1:5000/auth/login \
   -d '{"username": "profe_test", "password": "password123"}'
 ```
 
-| Metodo | URL | Descripcion |
+### Autenticación
+
+| Método | URL | Descripción |
 |---|---|---|
 | POST | `/auth/register` | Crear cuenta |
-| POST | `/auth/login` | Iniciar sesion, devuelve JWT |
-| POST | `/auth/logout` | Cerrar sesion |
+| POST | `/auth/login` | Iniciar sesión, devuelve JWT |
+| POST | `/auth/logout` | Cerrar sesión |
 | GET | `/auth/me` | Perfil del usuario actual |
+
+### Partidas (Unity)
+
+| Método | URL | Descripción |
+|---|---|---|
 | POST | `/session/start` | Iniciar partida de un memoreto |
 | POST | `/game/session/event` | Registrar evento en partida |
 | POST | `/session/end` | Finalizar partida |
 | POST | `/answers` | Enviar respuesta y obtener puntaje |
-| GET | `/answer/history` | Historial de intentos |
-| GET | `/dashboard/ranking` | Ranking global |
-| GET | `/memoretos/published` | Lista de memoretos disponibles |
+| GET | `/answer/history` | Historial de intentos del usuario |
+
+### Dashboard
+
+| Método | URL | Descripción |
+|---|---|---|
+| GET | `/dashboard/ranking` | Ranking global de usuarios |
+| GET | `/dashboard/ranking/me` | Posición del usuario actual |
+| GET | `/dashboard/stats/scatter` | Datos scatter: tiempo vs puntaje |
+| GET | `/dashboard/stats/progreso` | Progreso acumulado por estudiante |
+
+### Memoretos
+
+| Método | URL | Descripción |
+|---|---|---|
+| GET | `/memoretos/published` | Memoretos publicados (Unity) |
 | GET | `/memoretos/mine` | Mis memoretos (docente) |
+| GET | `/memoretos/<id>` | Detalle de un memoreto |
 | POST | `/memoretos/` | Crear memoreto (docente) |
 | PUT | `/memoretos/<id>` | Editar memoreto |
 | DELETE | `/memoretos/<id>` | Eliminar memoreto |
-| POST | `/groups/` | Crear grupo (docente) |
+| GET | `/memoretos/<id>/answers` | Resultados de estudiantes |
+
+### Grupos
+
+| Método | URL | Descripción |
+|---|---|---|
 | GET | `/groups/mine` | Mis grupos |
-| POST | `/groups/<code>/members` | Unirse a un grupo con codigo |
-| GET | `/groups/<id>/students` | Ver estudiantes del grupo |
+| GET | `/groups/<id>` | Detalle de un grupo |
+| POST | `/groups/` | Crear grupo (docente) |
+| POST | `/groups/<code>/members` | Unirse a un grupo con código |
+| GET | `/groups/<id>/students` | Estudiantes del grupo |
+| GET | `/groups/<id>/memoretos` | Memoretos asignados al grupo |
 | POST | `/groups/<id>/memoretos` | Asignar memoreto a grupo |
+| DELETE | `/groups/<id>/memoretos/<memo_id>` | Quitar memoreto del grupo |
 
 ---
 
 ## Probar los endpoints con Postman
 
-1. Importar la URL base: `http://127.0.0.1:5000`
+1. URL base: `http://127.0.0.1:5000`
 2. Usar `http://` (no `https://`)
-3. Body: seleccionar **raw** y tipo **JSON**
-4. Para endpoints protegidos: pestana **Authorization** > tipo **Bearer Token** > pegar el token del login
+3. Body: seleccionar **raw** → tipo **JSON**
+4. Endpoints protegidos: pestaña **Authorization** → tipo **Bearer Token** → pegar el token del login
 
 ---
 
 ## Restablecer la base de datos
 
-Si necesitas empezar desde cero:
-
 ```bash
 rm backend/memoretos.db
-python seed.py
+python3 seed.py
 ```
 
 ---
 
 ## Variables de entorno (opcionales)
 
-Crea un archivo `.env` en la raiz del proyecto para sobreescribir los valores por defecto:
+Crea un archivo `.env` en la raíz del proyecto para sobreescribir los valores por defecto:
 
 ```env
 SECRET_KEY=tu-clave-secreta-aqui
 JWT_SECRET_KEY=tu-clave-jwt-aqui
 DATABASE_URL=sqlite:///backend/memoretos.db
-CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+CORS_ORIGINS=http://localhost:4321,http://127.0.0.1:4321
 ```
 
 Sin este archivo el sistema funciona con valores por defecto seguros para desarrollo.
 
 ---
 
-## Solucion de problemas comunes
+## Solución de problemas comunes
 
 **"Address already in use" en el puerto 5000**
 ```bash
 lsof -ti :5000 | xargs kill -9
-python run.py
+python3 run.py
 ```
 
-**"Address already in use" en el puerto 5173**
+**"Address already in use" en el puerto 4321**
 ```bash
-lsof -ti :5173 | xargs kill -9
+lsof -ti :4321 | xargs kill -9
 cd frontend && npm run dev
 ```
 
-**Error 415 Unsupported Media Type en Postman**
-- Body > raw > cambiar dropdown de "Text" a **JSON**
+**macOS bloquea el puerto 5000 (AirPlay Receiver)**
 
-**Error SSL / WRONG_VERSION_NUMBER en Postman**
-- Usar `http://` en lugar de `https://`
+Ir a Ajustes del Sistema → General → AirDrop y Handoff → desactivar **AirPlay Receiver**, o usar un puerto alternativo:
+```bash
+# En run.py cambiar port=5000 por port=5001
+```
+
+**Error 415 Unsupported Media Type en Postman**
+- Body → raw → cambiar el dropdown de "Text" a **JSON**
 
 **"No such table" o error de base de datos**
 ```bash
-python seed.py
+python3 seed.py
+```
+
+**El frontend no carga (error de módulos faltantes)**
+```bash
+cd frontend && npm install
 ```
 
 ---
 
 ## Equipo
 
-| Nombre | Matricula |
+| Nombre | Matrícula |
 |---|---|
 | Ximena Itzel Camacho Flores | A01669596 |
 | Flor Blacina Rodriguez Hernandez | A01668657 |
 | Sebastian de Jesus Cruz Cruz | A01667857 |
 | Santiago Heriberto Leon Herrera | A01786782 |
 
-TC2005B · Construccion de Software y Toma de Decisiones · Tec de Monterrey · 2026-11
+TC2005B · Construcción de Software y Toma de Decisiones · Tec de Monterrey · 2026-11

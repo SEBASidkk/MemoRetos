@@ -1,12 +1,9 @@
-import os
-from flask import Flask, send_from_directory
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from .config import config
-
-FRONT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist")
 
 #Inicializar extensiones
 db      = SQLAlchemy()
@@ -32,7 +29,6 @@ def create_app(env="default"):
     from app.routes.memoretos  import memoretos_bp
     from app.routes.answers    import answers_bp
     from app.routes.groups     import groups_bp
-    from app.routes.graficas   import graficas_bp
 
     # Prefijos alineados a la DEFINICION DE ENDPOINTS (PDF)
     app.register_blueprint(auth_bp,      url_prefix="/auth")       # /auth/login, /auth/register
@@ -41,20 +37,11 @@ def create_app(env="default"):
     app.register_blueprint(memoretos_bp, url_prefix="/memoretos")  # /memoretos/published
     app.register_blueprint(answers_bp,   url_prefix="")            # /answers, /answer/history
     app.register_blueprint(groups_bp,    url_prefix="/groups")     # /groups/...
-    app.register_blueprint(graficas_bp,  url_prefix="")            # /graficas
 
     from flask import jsonify
 
     @app.route("/health")
     def health():
         return jsonify({"status": "ok", "message": "MemoRetos API corriendo ✅"})
-
-    @app.route("/", defaults={"path": ""})
-    @app.route("/<path:path>")
-    def index(path):
-        file_path = os.path.join(FRONT_DIR, path)
-        if path and os.path.exists(file_path):
-            return send_from_directory(FRONT_DIR, path)
-        return send_from_directory(FRONT_DIR, "index.html")
 
     return app

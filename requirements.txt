@@ -5,4 +5,3 @@ Flask-Migrate
 Flask-SQLAlchemy
 python-dotenv
 PyMySQL
-plotly
