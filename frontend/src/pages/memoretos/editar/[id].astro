@@ -1,0 +1,22 @@
+---
+import AppLayout from '../../../layouts/AppLayout.astro';
+import MemoEditor from '../../../components/react/MemoEditor';
+import { getMemoreto } from '../../../lib/api';
+
+const { id } = Astro.params;
+const token = Astro.locals.token;
+const res = await getMemoreto(id!, token);
+const memo = (res.data as { memoreto?: unknown }).memoreto ?? null;
+---
+
+<AppLayout title="Editar Memoreto" showBack={true}>
+  {memo ? (
+    <MemoEditor
+      memoId={id}
+      initialData={memo as Parameters<typeof MemoEditor>[0]['initialData']}
+      client:only="react"
+    />
+  ) : (
+    <p class="empty">Memoreto no encontrado.</p>
+  )}
+</AppLayout>

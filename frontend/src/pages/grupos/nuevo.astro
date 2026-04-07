@@ -1,0 +1,8 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import NuevoGrupoForm from '../../components/react/NuevoGrupoForm';
+---
+
+<AppLayout title="Nuevo Grupo" showBack={true}>
+  <NuevoGrupoForm client:load />
+</AppLayout>

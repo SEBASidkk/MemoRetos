@@ -1,0 +1,8 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import MemoEditor from '../../components/react/MemoEditor';
+---
+
+<AppLayout title="Nuevo Memoreto" showBack={true}>
+  <MemoEditor client:only="react" />
+</AppLayout>

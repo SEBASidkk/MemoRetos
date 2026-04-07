@@ -43,7 +43,7 @@ def start_session():
             "lastname":    user.lastname,
             "grupo":       user.group,
             "total_score": user.total_score,
-        },
+    },
         "memoreto": memoreto.to_dict(full=True),
     }), 201
 

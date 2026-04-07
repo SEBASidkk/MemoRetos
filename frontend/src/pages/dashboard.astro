@@ -1,0 +1,113 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+const user = Astro.locals.user;
+---
+
+<AppLayout title="Panel Principal">
+  <div class="page-content">
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+      <h1>¡Bienvenido a tu Espacio Docente!</h1>
+      <p>Impulsa el aprendizaje matemático de tus alumnos con herramientas digitales
+         diseñadas para la excelencia académica.</p>
+      <div class="hero-actions">
+        <a href="/memoretos/nuevo" class="hero-btn-primary">
+          <span class="material-symbols-outlined">add_circle</span>
+          Nuevo Reto
+        </a>
+        <a href="/estadisticas" class="hero-btn-ghost">
+          <span class="material-symbols-outlined">bar_chart</span>
+          Ver Estadísticas
+        </a>
+      </div>
+    </section>
+
+    <!-- Bento Grid -->
+    <div class="bento-grid">
+      <div class="bento-card col-8">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+          <div class="bento-card-icon primary">
+            <span class="material-symbols-outlined">extension</span>
+          </div>
+          <span class="bento-status-tag">Activo</span>
+        </div>
+        <h3>Gestionar Memoretos</h3>
+        <p>Crea y edita retos matemáticos interactivos que desafían la lógica
+           de tus estudiantes mediante gamificación avanzada.</p>
+        <div class="bento-card-footer">
+          <div style="display:flex;gap:.35rem">
+            <div style="width:2.25rem;height:2.25rem;border-radius:50%;background:var(--surface-container);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:var(--on-surface-variant)">M1</div>
+            <div style="width:2.25rem;height:2.25rem;border-radius:50%;background:var(--surface-container-high);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:var(--on-surface-variant)">M2</div>
+            <div style="width:2.25rem;height:2.25rem;border-radius:50%;background:var(--primary-fixed);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:var(--primary)">+</div>
+          </div>
+          <a href="/memoretos" class="bento-card-link">
+            Ir a la Biblioteca
+            <span class="material-symbols-outlined" style="font-size:1rem">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="bento-card col-4 dark" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <div class="bento-card-icon white-10" style="color:var(--tertiary-fixed-dim)">
+            <span class="material-symbols-outlined">analytics</span>
+          </div>
+          <h3>Analítica en Tiempo Real</h3>
+          <p>Visualiza el progreso detallado y detecta áreas de oportunidad instantáneamente.</p>
+        </div>
+        <div>
+          <div class="bento-progress-track">
+            <div class="bento-progress-fill" style="width:75%"></div>
+          </div>
+          <p class="bento-progress-label">Participación general: 75%</p>
+        </div>
+      </div>
+
+      <div class="bento-card col-6 surface-low" style="display:flex;align-items:center;gap:1.5rem">
+        <div style="flex:1">
+          <h3>Control de Grupos</h3>
+          <p>Administra tus secciones, genera códigos de acceso y supervisa inscripciones.</p>
+          <a href="/grupos" class="bento-card-link" style="margin-top:1rem;display:inline-flex">
+            Gestionar Secciones
+            <span class="material-symbols-outlined" style="font-size:1rem">arrow_forward</span>
+          </a>
+        </div>
+        <div style="width:4.5rem;height:4.5rem;background:var(--surface-container-lowest);border-radius:var(--r-xl);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-sm);flex-shrink:0">
+          <span class="material-symbols-outlined" style="font-size:2rem;color:var(--secondary)">diversity_3</span>
+        </div>
+      </div>
+
+      <div class="bento-card col-6 surface-low" style="display:flex;align-items:center;gap:1.5rem">
+        <div style="width:4.5rem;height:4.5rem;background:var(--primary);border-radius:var(--r-xl);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);flex-shrink:0">
+          <span class="material-symbols-outlined" style="font-size:2rem;color:var(--on-primary)">tune</span>
+        </div>
+        <div style="flex:1">
+          <h3>Configuraciones Académicas</h3>
+          <p>Personaliza los parámetros pedagógicos y ajusta la experiencia de tu cátedra.</p>
+          <a href="/configuracion" class="btn btn-outline btn-sm" style="margin-top:0.85rem;display:inline-flex">
+            Abrir Ajustes
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem">
+      <div class="bento-card" style="text-align:center;padding:1.5rem 1rem">
+        <span class="material-symbols-outlined" style="font-size:2rem;color:var(--primary);margin-bottom:.5rem;display:block">functions</span>
+        <p style="font-size:1.75rem;font-weight:800;color:var(--primary);font-family:'Public Sans',sans-serif">{user.total_score ?? 0}</p>
+        <p style="font-size:.75rem;color:var(--on-surface-variant);margin-top:.25rem">Puntos totales</p>
+      </div>
+      <div class="bento-card" style="text-align:center;padding:1.5rem 1rem">
+        <span class="material-symbols-outlined" style="font-size:2rem;color:var(--secondary);margin-bottom:.5rem;display:block">school</span>
+        <p style="font-size:1.75rem;font-weight:800;color:var(--secondary);font-family:'Public Sans',sans-serif">UNAE</p>
+        <p style="font-size:.75rem;color:var(--on-surface-variant);margin-top:.25rem">Facultad de Educación</p>
+      </div>
+      <div class="bento-card" style="text-align:center;padding:1.5rem 1rem">
+        <span class="material-symbols-outlined" style="font-size:2rem;color:var(--tertiary);margin-bottom:.5rem;display:block">verified</span>
+        <p style="font-size:1.75rem;font-weight:800;color:var(--tertiary);font-family:'Public Sans',sans-serif">{user.rol}</p>
+        <p style="font-size:.75rem;color:var(--on-surface-variant);margin-top:.25rem">Rol actual</p>
+      </div>
+    </div>
+  </div>
+</AppLayout>

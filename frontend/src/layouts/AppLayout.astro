@@ -1,0 +1,73 @@
+---
+import SideNav from '../components/astro/SideNav.astro';
+import type { User } from '../lib/types';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  showBack?: boolean;
+}
+
+const { title = 'Panel Principal', showBack = false } = Astro.props;
+const user = Astro.locals.user as User;
+const currentPath = Astro.url.pathname;
+
+const initials = user
+  ? `${user.name?.[0] ?? ''}${user.lastname?.[0] ?? ''}`.toUpperCase()
+  : '?';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} · UNAE Digital</title>
+    <link rel="icon" href="/logo.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app-layout">
+      <SideNav user={user} currentPath={currentPath} />
+
+      <div class="app-shell">
+        <!-- Top Bar -->
+        <header class="app-topbar">
+          <div class="app-topbar-left">
+            {showBack && (
+              <button class="topbar-back-btn" onclick="history.back()" title="Volver">
+                <span class="material-symbols-outlined">arrow_back</span>
+              </button>
+            )}
+            <h2 class="app-topbar-title">{title}</h2>
+          </div>
+          <div class="app-topbar-actions">
+            <button class="topbar-icon-btn" title="Notificaciones">
+              <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <button class="topbar-icon-btn" title="Ayuda">
+              <span class="material-symbols-outlined">help</span>
+            </button>
+            <div class="topbar-avatar" title={user?.name}>
+              {initials}
+            </div>
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="app-main">
+          <slot />
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import { getMyGroups } from '../../lib/api';
+
+const token = Astro.locals.token;
+const res = await getMyGroups(token);
+const groups = (res.data as { groups?: unknown[] }).groups ?? [];
+---
+
+<AppLayout title="Grupos">
+  <div class="page-content" style="max-width:800px">
+    <div>
+      <a href="/grupos/nuevo" class="btn btn-full"
+        style="margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem;justify-content:center">
+        <span class="material-symbols-outlined">group_add</span>
+        Nuevo Grupo
+      </a>
+
+      {groups.length === 0 ? (
+        <p class="empty">No has creado grupos.</p>
+      ) : (
+        <div class="card-list">
+          {(groups as { id: number; name: string; code: string; student_count?: number; memoreto_count?: number }[]).map(g => (
+            <a href={`/grupos/${g.id}`} class="level-card" style="text-decoration:none;color:inherit;cursor:pointer">
+              <div class="level-header">
+                <span class="level-title">{g.name}</span>
+                <span class="badge small">Código: {g.code}</span>
+              </div>
+              <div class="level-meta">
+                <span>{g.student_count ?? 0} estudiantes · {g.memoreto_count ?? 0} memoretos</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</AppLayout>

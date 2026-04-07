@@ -1,0 +1,68 @@
+---
+import type { User } from '../../lib/types';
+
+interface Props {
+  user: User;
+  currentPath: string;
+}
+
+const { user, currentPath } = Astro.props;
+
+const NAV_ITEMS = [
+  { label: 'Panel General',     icon: 'dashboard',   to: '/dashboard' },
+  { label: 'Mis Alumnos',       icon: 'group',       to: '/grupos' },
+  { label: 'Retos Matemáticos', icon: 'functions',   to: '/memoretos' },
+  { label: 'Estadísticas',      icon: 'leaderboard', to: '/estadisticas' },
+  { label: 'Configuración',     icon: 'settings',    to: '/configuracion' },
+];
+---
+
+<aside class="side-nav">
+  <!-- Brand -->
+  <div class="side-nav-brand">
+    <h1>UNAE Digital</h1>
+    <span class="brand-sub">MemoRetos · Panel Docente</span>
+  </div>
+
+  <!-- User -->
+  <div class="side-nav-user">
+    <div class="side-nav-avatar">
+      <span class="material-symbols-outlined">person</span>
+    </div>
+    <div class="side-nav-user-info">
+      <p class="user-role">{user.rol || 'Docente'}</p>
+      <p class="user-dept">{user.name} {user.lastname}</p>
+    </div>
+  </div>
+
+  <!-- Nav Items -->
+  <span class="side-nav-section-label">Navegación</span>
+  <nav>
+    {NAV_ITEMS.map(item => {
+      const isActive = item.to === '/dashboard'
+        ? currentPath === '/dashboard'
+        : currentPath.startsWith(item.to);
+      return (
+        <a href={item.to} class={isActive ? 'active' : ''}>
+          <span class="material-symbols-outlined">{item.icon}</span>
+          {item.label}
+        </a>
+      );
+    })}
+  </nav>
+
+  <!-- Logout -->
+  <div class="side-nav-footer">
+    <button id="logout-btn">
+      <span class="material-symbols-outlined">logout</span>
+      Cerrar Sesión
+    </button>
+  </div>
+</aside>
+
+<script>
+  document.getElementById('logout-btn')?.addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    window.location.href = '/';
+  });
+</script>

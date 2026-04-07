@@ -1,0 +1,35 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import GrupoDetalle from '../../components/react/GrupoDetalle';
+import { getGroup, getGroupStudents, getGroupMemoretos, getMyMemoretos } from '../../lib/api';
+
+const { id } = Astro.params;
+const token = Astro.locals.token;
+
+const [gRes, stRes, mmRes, allRes] = await Promise.all([
+  getGroup(id!, token),
+  getGroupStudents(id!, token),
+  getGroupMemoretos(id!, token),
+  getMyMemoretos(token),
+]);
+
+const group = (gRes.data as { group?: unknown }).group;
+const students = (stRes.data as { students?: unknown[] }).students ?? [];
+const memos = (mmRes.data as { memoretos?: unknown[] }).memoretos ?? [];
+const allMemos = (allRes.data as { memoretos?: unknown[] }).memoretos ?? [];
+---
+
+<AppLayout title="Detalle del Grupo" showBack={true}>
+  {group ? (
+    <GrupoDetalle
+      groupId={id!}
+      initialGroup={group as Parameters<typeof GrupoDetalle>[0]['initialGroup']}
+      initialStudents={students as Parameters<typeof GrupoDetalle>[0]['initialStudents']}
+      initialMemos={memos as Parameters<typeof GrupoDetalle>[0]['initialMemos']}
+      allMemos={allMemos as Parameters<typeof GrupoDetalle>[0]['allMemos']}
+      client:load
+    />
+  ) : (
+    <p class="empty">Grupo no encontrado.</p>
+  )}
+</AppLayout>

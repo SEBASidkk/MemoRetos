@@ -1,0 +1,30 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import EstadisticasPage from '../components/react/EstadisticasPage';
+import { globalRanking, getMyMemoretos, dashboardScatter, dashboardProgreso } from '../lib/api';
+
+const token = Astro.locals.token;
+const safe = (p: Promise<unknown>) => (p as Promise<{ data: unknown }>).catch(() => ({ data: {} }));
+
+const [rk, mm, sc, pr] = await Promise.all([
+  safe(globalRanking(token)),
+  safe(getMyMemoretos(token)),
+  safe(dashboardScatter(token)),
+  safe(dashboardProgreso(token)),
+]);
+
+const users = (rk.data as { ranking?: unknown[] }).ranking ?? [];
+const memos = (mm.data as { memoretos?: unknown[] }).memoretos ?? [];
+const scatter = (sc.data as { data?: unknown[] }).data ?? [];
+const progreso = (pr.data as { data?: Record<string, unknown[]> }).data ?? {};
+---
+
+<AppLayout title="Estadísticas">
+  <EstadisticasPage
+    users={users as Parameters<typeof EstadisticasPage>[0]['users']}
+    memos={memos as Parameters<typeof EstadisticasPage>[0]['memos']}
+    scatter={scatter as Parameters<typeof EstadisticasPage>[0]['scatter']}
+    progreso={progreso as Parameters<typeof EstadisticasPage>[0]['progreso']}
+    client:only="react"
+  />
+</AppLayout>
