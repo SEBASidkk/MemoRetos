@@ -304,7 +304,7 @@ def get_ranking(memoreto_id):
     }), 200
 
 
-@answers_bp.route("/answer/history", methods=['GET'])  # PDF endpoint 5
+@answers_bp.route("/answers/history", methods=['GET'])  # PDF endpoint 5
 @jwt_required()
 def answer_history():
     """

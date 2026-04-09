@@ -10,7 +10,7 @@ from datetime import datetime
 game_bp = Blueprint("game", __name__)
 
 
-@game_bp.post("/session/start")
+@game_bp.post("/sessions/start")
 @jwt_required()
 def start_session():
     data    = request.get_json()
@@ -48,7 +48,7 @@ def start_session():
     }), 201
 
 
-@game_bp.post("/game/session/event")  # PDF endpoint 7
+@game_bp.post("/game/sessions/event")  # PDF endpoint 7
 @jwt_required()
 def log_event():
     data = request.get_json()
@@ -74,7 +74,7 @@ def log_event():
     }), 200
 
 
-@game_bp.post("/session/end")
+@game_bp.post("/sessions/end")
 @jwt_required()
 def end_session():
     data = request.get_json()
@@ -94,7 +94,7 @@ def end_session():
         "completed":   session.completed,
         "ended_at":    session.ended_at.isoformat(),
         "_links": {
-            "start": {"href": "/session/start", "method": "POST"},
+            "start": {"href": "/sessions/start", "method": "POST"},
         },
     }), 200
 
