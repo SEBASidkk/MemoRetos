@@ -2,7 +2,6 @@ import os
 import tempfile
 import pytest
 
-# Importar desde tu proyecto
 from backend import create_app
 from backend.app.models import db as _db
 
