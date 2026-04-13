@@ -235,3 +235,95 @@ def test_puntaje_segun_tiempo(client: FlaskClient, auth):
     score_lento = response_lento.get_json()["data_memoreto"]["score"]
     
     assert score_rapido > score_lento
+
+
+def test_obtener_ranking(client: FlaskClient, auth):
+    """Probar obtener ranking de un memoreto"""
+    headers = auth.get_headers()
+    
+    response = client.get("/ranking/1", headers=headers)
+    
+    assert response.status_code == 200
+    data = response.get_json()
+    
+    assert data["memoreto_id"] == "1"
+    assert "memoreto_name" in data
+    assert "ranking" in data
+    assert "total_players" in data
+    assert isinstance(data["ranking"], list)
+
+
+def test_obtener_ranking_memoreto_inexistente(client: FlaskClient, auth):
+    """Probar ranking de memoreto que no existe"""
+    headers = auth.get_headers()
+    
+    response = client.get("/ranking/99999", headers=headers)
+    
+    assert response.status_code == 404
+    data = response.get_json()
+    assert "Memoreto no encontrado" in data["message"]
+
+
+def test_obtener_ranking_sin_auth(client: FlaskClient):
+    """Probar ranking sin autenticación"""
+    response = client.get("/ranking/1")
+    assert response.status_code == 401
+
+
+def test_obtener_ranking_formato_correcto(client: FlaskClient, auth):
+    """Probar que el ranking tiene el formato esperado"""
+    headers = auth.get_headers()
+    
+    response = client.get("/ranking/1", headers=headers)
+    
+    assert response.status_code == 200
+    data = response.get_json()
+    
+    # Verificar estructura del ranking
+    if len(data["ranking"]) > 0:
+        primer_puesto = data["ranking"][0]
+        assert "position" in primer_puesto
+        assert "username" in primer_puesto
+        assert "score" in primer_puesto
+        assert isinstance(primer_puesto["position"], int)
+        assert isinstance(primer_puesto["score"], int)
+
+
+def test_obtener_ranking_limitado_a_10(client: FlaskClient, auth, app):
+    """Probar que el ranking solo muestra máximo 10 jugadores"""
+    from backend.app.models.user import User
+    from backend.app.models.player_answer import PlayerAnswer
+    
+    headers = auth.get_headers()
+    
+    # Crear 15 usuarios con respuestas
+    with app.app_context():
+        from backend import db
+        
+        for i in range(15):
+            user = User(
+                name=f"User{i}", lastname="Test",
+                username=f"usuario{i}", email=f"user{i}@test.com",
+                rol="estudiante", group="111"
+            )
+            user.set_password("test123")
+            db.session.add(user)
+            db.session.flush()
+            
+            answer = PlayerAnswer(
+                user_id=user.id,
+                memoreto_id=1,
+                respuesta_json="{}",
+                resuelto=True,
+                score=1000 - i * 10,
+                time_seconds=30,
+                intentos=1
+            )
+            db.session.add(answer)
+        
+        db.session.commit()
+    
+    response = client.get("/ranking/1", headers=headers)
+    data = response.get_json()
+    
+    assert len(data["ranking"]) <= 10
