@@ -187,7 +187,7 @@ def test_post_answers_tiempo_afecta_puntaje(client: FlaskClient, auth_headers):
     
     now = datetime.utcnow()
     
-    # Respuesta rápida (10 segundos)
+    # Respuesta 1 - rápida
     payload_rapido = {
         "id_memoreto": "1",
         "attempt_number": 1,
@@ -196,7 +196,7 @@ def test_post_answers_tiempo_afecta_puntaje(client: FlaskClient, auth_headers):
         "answers": answers_data
     }
     
-    # Respuesta lenta (50 segundos)
+    # Respuesta 2 - lenta
     payload_lento = {
         "id_memoreto": "1",
         "attempt_number": 1,

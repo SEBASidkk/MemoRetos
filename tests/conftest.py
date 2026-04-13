@@ -8,6 +8,7 @@ sys.path.insert(0, project_root)
 sys.path.insert(0, os.path.join(project_root, 'backend'))
 
 from backend import create_app, db as _db
+from app.models.user import User
 
 
 @pytest.fixture
@@ -23,13 +24,48 @@ def app():
     })
 
     with app.app_context():
-        _db.create_all()  # Crear tablas desde tus modelos
-        # Ejecutar el script SQL con datos de prueba
+        _db.create_all()
+
+        # CREAR USUARIOS
+        user = User(
+            id=1,
+            name="Profe",
+            lastname="Test",
+            username="profe_test",
+            email="profe@tec.mx",
+            rol="docente"
+        )
+        user.set_password("password123")
+        _db.session.add(user)
+
+        user2 = User(
+            id=2,
+            name="Estudiante",
+            lastname="Test",
+            username="estudiante_test",
+            email="estudiante@tec.mx",
+            rol="estudiante"
+        )
+        user2.set_password("password123")
+        _db.session.add(user2)
+
+        _db.session.commit()
+
+        # CARGAR MEMORETOS
         connection = _db.engine.connect()
-        connection.exec_driver_sql(_data_sql)
+
+        sql_file_path = os.path.join(project_root, "tests", "data.sql")
+        with open(sql_file_path, "r", encoding="utf-8") as f:
+            sql_script = f.read()
+
+        for statement in sql_script.split(";"):
+            stmt = statement.strip()
+            if stmt:
+                connection.exec_driver_sql(stmt)
+
         connection.commit()
         connection.close()
-    
+
     yield app
 
     with app.app_context():
@@ -47,7 +83,6 @@ def client(app):
 
 @pytest.fixture
 def runner(app):
-    """A test runner for the app's Click commands."""
     return app.test_cli_runner()
 
 
@@ -56,23 +91,20 @@ class AuthActions:
         self._client = client
 
     def login(self, username="profe_test", password="password123"):
-        """Login con el usuario de prueba"""
         return self._client.post(
-            "/auth/login", 
+            "/auth/login",
             json={"username": username, "password": password}
         )
 
-    def logout(self):
-        return self._client.post("/auth/logout")
-    
+    def logout(self, headers):
+        return self._client.post("/auth/logout", headers=headers)
+
     def get_token(self, username="profe_test", password="password123"):
-        """Obtener token JWT para pruebas autenticadas"""
         response = self.login(username, password)
         data = response.get_json()
-        return data.get("access_token") if data else None
-    
+        return data.get("token") if data else None  # 🔥 FIX
+
     def get_headers(self, username="profe_test", password="password123"):
-        """Obtener headers con autenticación"""
         token = self.get_token(username, password)
         return {"Authorization": f"Bearer {token}"}
 
@@ -84,5 +116,4 @@ def auth(client):
 
 @pytest.fixture
 def auth_headers(auth):
-    """Fixture que da headers ya autenticados con profe_test"""
     return auth.get_headers()
