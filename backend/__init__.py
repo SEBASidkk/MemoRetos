@@ -42,6 +42,6 @@ def create_app(env="default"):
 
     @app.route("/health")
     def health():
-        return jsonify({"status": "ok", "message": "MemoRetos API corriendo ✅"})
+        return jsonify({"status": "ok", "message": "MemoRetos API corriendo"})
 
     return app

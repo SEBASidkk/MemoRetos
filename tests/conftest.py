@@ -26,7 +26,9 @@ def app():
     with app.app_context():
         _db.create_all()
 
-        # CREAR USUARIOS
+        # ================
+        # USUARIOS BASE
+        # ================
         user = User(
             id=1,
             name="Profe",
@@ -51,7 +53,9 @@ def app():
 
         _db.session.commit()
 
-        # CARGAR MEMORETOS
+        # =========================
+        # CARGA DE MEMORETOS
+        # =========================
         connection = _db.engine.connect()
 
         sql_file_path = os.path.join(project_root, "tests", "data.sql")
@@ -86,6 +90,9 @@ def runner(app):
     return app.test_cli_runner()
 
 
+# ===============
+# AUTH HELPER 
+# ===============
 class AuthActions:
     def __init__(self, client):
         self._client = client
@@ -102,7 +109,7 @@ class AuthActions:
     def get_token(self, username="profe_test", password="password123"):
         response = self.login(username, password)
         data = response.get_json()
-        return data.get("token") if data else None  # 🔥 FIX
+        return data.get("token") if data else None
 
     def get_headers(self, username="profe_test", password="password123"):
         token = self.get_token(username, password)
