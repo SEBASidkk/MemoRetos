@@ -14,6 +14,7 @@ from app.models.user import User
 @pytest.fixture
 def app():
     db_fd, db_path = tempfile.mkstemp()
+    os.close(db_fd)
 
     app = create_app()
     app.config.update({
@@ -26,9 +27,6 @@ def app():
     with app.app_context():
         _db.create_all()
 
-        # ================
-        # USUARIOS BASE
-        # ================
         user = User(
             id=1,
             name="Profe",
@@ -53,22 +51,15 @@ def app():
 
         _db.session.commit()
 
-        # =========================
-        # CARGA DE MEMORETOS
-        # =========================
-        connection = _db.engine.connect()
+        with _db.engine.begin() as connection:
+            sql_file_path = os.path.join(project_root, "tests", "data.sql")
+            with open(sql_file_path, "r", encoding="utf-8") as f:
+                sql_script = f.read()
 
-        sql_file_path = os.path.join(project_root, "tests", "data.sql")
-        with open(sql_file_path, "r", encoding="utf-8") as f:
-            sql_script = f.read()
-
-        for statement in sql_script.split(";"):
-            stmt = statement.strip()
-            if stmt:
-                connection.exec_driver_sql(stmt)
-
-        connection.commit()
-        connection.close()
+            for statement in sql_script.split(";"):
+                stmt = statement.strip()
+                if stmt:
+                    connection.exec_driver_sql(stmt)
 
     yield app
 
@@ -76,7 +67,6 @@ def app():
         _db.session.remove()
         _db.drop_all()
 
-    os.close(db_fd)
     os.unlink(db_path)
 
 
@@ -90,9 +80,6 @@ def runner(app):
     return app.test_cli_runner()
 
 
-# ===============
-# AUTH HELPER 
-# ===============
 class AuthActions:
     def __init__(self, client):
         self._client = client
@@ -102,9 +89,6 @@ class AuthActions:
             "/auth/login",
             json={"username": username, "password": password}
         )
-
-    def logout(self, headers):
-        return self._client.post("/auth/logout", headers=headers)
 
     def get_token(self, username="profe_test", password="password123"):
         response = self.login(username, password)
@@ -125,12 +109,10 @@ def auth(client):
 def auth_headers(auth):
     return auth.get_headers()
 
-@pytest.fixture
-def student_auth_headers(auth):
-    """Headers de autenticación para estudiante (usuario id=2)"""
-    return auth.get_headers(username="estudiante_test", password="password123")
 
 @pytest.fixture
 def student_auth_headers(auth):
-    """Headers de autenticación para estudiante (usuario id=2)"""
-    return auth.get_headers(username="estudiante_test", password="password123")
+    return auth.get_headers(
+        username="estudiante_test",
+        password="password123"
+    )

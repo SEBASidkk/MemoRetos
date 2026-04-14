@@ -1,5 +1,6 @@
 DELETE FROM player_answers;
 DELETE FROM game_sessions;
+DELETE FROM groups;
 DELETE FROM memoretos;
 
 -- =========================
@@ -41,3 +42,9 @@ INSERT INTO player_answers (
 VALUES
 (1, 1, '{"Nodo_1_2_0": 6}', 1, 1000, 30, 1, CURRENT_TIMESTAMP),
 (2, 1, '{"Nodo_1_2_0": 5}', 1, 500, 45, 2, CURRENT_TIMESTAMP);
+
+-- =========================
+-- GROUPS
+-- =========================
+INSERT INTO groups (id, name, code, teacher_id, created_at)
+VALUES (1, 'Grupo Test', 'TC2005B', 1, CURRENT_TIMESTAMP);
