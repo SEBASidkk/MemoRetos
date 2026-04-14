@@ -124,3 +124,8 @@ def auth(client):
 @pytest.fixture
 def auth_headers(auth):
     return auth.get_headers()
+
+@pytest.fixture
+def student_auth_headers(auth):
+    """Headers de autenticación para estudiante (usuario id=2)"""
+    return auth.get_headers(username="estudiante_test", password="password123")
