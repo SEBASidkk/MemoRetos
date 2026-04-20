@@ -12,7 +12,7 @@ export interface User {
 
 export interface Shape {
   id: number;
-  type: 'circulo' | 'triangulo' | 'cuadrado' | 'rectangulo';
+  type: 'circulo' | 'elipse' | 'triangulo' | 'cuadrado' | 'rectangulo' | 'hexagono' | 'pentagono';
   color: string;
   operacion: 'suma' | 'resta' | 'multiplicacion';
   target: number;
@@ -20,6 +20,7 @@ export interface Shape {
   y: number;
   w: number;
   h: number;
+  rotation?: number; // degrees
 }
 
 export interface CanvasNode {
@@ -30,7 +31,7 @@ export interface CanvasNode {
 }
 
 export interface DragState {
-  type: 'create' | 'move' | 'resize';
+  type: 'create' | 'move' | 'resize' | 'rotate';
   id?: number;
   start?: [number, number];
   shape?: Shape;
@@ -45,10 +46,10 @@ export interface DragState {
 
 export interface Figure {
   id: number;
-  type: Shape['type'];
+  type: Shape['type'] | string;
   color: string;
   operacion: Shape['operacion'];
   target: number;
   nodos: number[];
-  _geo: { x: number; y: number; w: number; h: number };
+  _geo: { x: number; y: number; w: number; h: number; rotation?: number };
 }

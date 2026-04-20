@@ -992,12 +992,18 @@ a:hover { text-decoration: underline; }
 .ctool.danger { border-color: var(--error-container); color: var(--error); }
 .ctool.danger:hover { background: var(--error-container); }
 .ctool-sep { width: 1px; height: 20px; background: var(--outline-variant); margin: 0 .1rem; }
-.canvas-body { display: flex; align-items: stretch; }
-.memo-svg { display: block; flex-shrink: 0; border-right: 1px solid var(--outline-variant); }
+.canvas-body { display: flex; align-items: stretch; min-height: 520px; }
+.memo-svg {
+  display: block; flex: 1 1 0; min-width: 0;
+  border-right: 1px solid var(--outline-variant);
+  /* maintain 700:440 aspect ratio while filling available width */
+  aspect-ratio: 700 / 440;
+  height: auto;
+}
 .canvas-panel {
-  flex: 1; min-width: 210px; padding: 1rem;
+  width: 220px; flex-shrink: 0; padding: 1rem;
   display: flex; flex-direction: column; gap: .6rem;
-  overflow-y: auto; max-height: 390px;
+  overflow-y: auto;
 }
 .panel-title { display: flex; align-items: center; gap: .5rem; font-size: .9rem; font-weight: 700; color: var(--on-surface); margin-bottom: .25rem; }
 .panel-type-badge { background: var(--surface-container); color: var(--on-surface-variant); font-size: .7rem; padding: .15rem .4rem; border-radius: 99px; }
@@ -1053,9 +1059,9 @@ a:hover { text-decoration: underline; }
 @media (max-width: 900px) {
   .editor-layout { grid-template-columns: 1fr; }
   .editor-meta   { position: static; }
-  .canvas-body   { flex-direction: column; }
-  .memo-svg      { border-right: none; border-bottom: 1px solid var(--outline-variant); width: 100% !important; }
-  .canvas-panel  { max-height: none; }
+  .canvas-body   { flex-direction: column; min-height: unset; }
+  .memo-svg      { border-right: none; border-bottom: 1px solid var(--outline-variant); width: 100%; aspect-ratio: 700 / 440; }
+  .canvas-panel  { width: 100%; }
 }
 @media (max-width: 768px) {
   :root { --sidebar-w: 0px; }

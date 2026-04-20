@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import PlotlyChart from './PlotlyChart';
 import type * as Plotly from 'plotly.js';
 
 const DIFS: Record<string, string> = { easy: 'Fácil', medium: 'Medio', hard: 'Difícil' };
-const DIF_COLOR: Record<string, string> = { easy: '#15803d', medium: '#825500', hard: '#ba1a1a' };
+const DIF_COLOR: Record<string, string> = { easy: '#15803d', medium: '#b45309', hard: '#ba1a1a' };
 const LINE_COLORS = ['#550042','#feae1e','#002a57','#76135d','#825500','#00407e','#f884cf','#ffb94e','#82adf3','#a8c8ff'];
-const BAR_COLORS = ['#550042','#feae1e','#002a57','#76135d','#825500','#00407e','#f884cf','#ffb94e','#82adf3','#a8c8ff'];
 
 interface User { id: number; name: string; lastname: string; username: string; total_score: number; }
 interface Memo { id: number; dificultad: string; is_published: boolean; }
@@ -19,67 +18,136 @@ interface Props {
   progreso: ProgresoData;
 }
 
-export default function EstadisticasPage({ users, memos, scatter, progreso }: Props) {
-  const [tab, setTab] = useState<'puntajes' | 'dificultad'>('puntajes');
-  const chartH = 220;
-  const barPad = 8;
+const LAYOUT_BASE: Partial<Plotly.Layout> = {
+  paper_bgcolor: 'transparent',
+  plot_bgcolor: 'transparent',
+  font: { family: 'Inter, sans-serif', color: '#94a3b8', size: 12 },
+  margin: { t: 10, r: 16, b: 50, l: 56 },
+  legend: { bgcolor: 'transparent', font: { color: '#94a3b8' } },
+  xaxis: { gridcolor: '#1e293b', zerolinecolor: '#1e293b' } as Partial<Plotly.LayoutAxis>,
+  yaxis: { gridcolor: '#1e293b', zerolinecolor: '#1e293b' } as Partial<Plotly.LayoutAxis>,
+};
 
+export default function EstadisticasPage({ users, memos, scatter, progreso }: Props) {
+  const [filterDif, setFilterDif] = useState<string>('all');
+  const [filterSolved, setFilterSolved] = useState(false);
+  const [filterUser, setFilterUser] = useState<string>('all');
+
+  // ── Métricas globales ──────────────────────────────────────────────────────
   const total = users.length;
   const avg = total ? Math.round(users.reduce((s, u) => s + u.total_score, 0) / total) : 0;
   const top = users[0]?.total_score || 0;
   const published = memos.filter(m => m.is_published).length;
-  const pubPct = memos.length ? Math.round((published / memos.length) * 100) : 0;
+  const totalAttempts = scatter.length;
+  const solvedAttempts = scatter.filter(d => d.score > 0).length;
+  const solveRate = totalAttempts ? Math.round((solvedAttempts / totalAttempts) * 100) : 0;
 
-  const difCount = memos.reduce<Record<string, number>>((acc, m) => {
-    acc[m.dificultad] = (acc[m.dificultad] || 0) + 1;
-    return acc;
-  }, {});
-  const difEntries = Object.entries(difCount);
+  // ── Datos filtrados ────────────────────────────────────────────────────────
+  const filtered = useMemo(() => scatter.filter(d => {
+    if (filterDif !== 'all' && d.dificultad !== filterDif) return false;
+    if (filterSolved && d.score === 0) return false;
+    if (filterUser !== 'all' && d.username !== filterUser) return false;
+    return true;
+  }), [scatter, filterDif, filterSolved, filterUser]);
 
-  const chartData = tab === 'puntajes'
-    ? [...users].sort((a, b) => b.total_score - a.total_score).slice(0, 10)
-        .map((u, i) => ({ label: u.username.slice(0, 8), value: u.total_score, color: BAR_COLORS[i % BAR_COLORS.length] }))
-    : Object.entries(difCount).map(([k, v]) => ({ label: DIFS[k] || k, value: v, color: DIF_COLOR[k] || '#550042' }));
+  const allUsers = useMemo(() => [...new Set(scatter.map(d => d.username))].sort(), [scatter]);
 
-  const n = chartData.length;
-  const barW = n ? Math.min(52, (400 - barPad * (n + 1)) / n) : 40;
-  const maxVal = Math.max(...chartData.map(d => d.value), 1);
-  const barX = (i: number) => barPad + i * (barW + barPad);
-  const barH = (val: number) => Math.max(4, (val / maxVal) * chartH);
-  const barY = (val: number) => chartH - barH(val);
+  // ── Chart 1: Intentos por memoreto ────────────────────────────────────────
+  const byMemo = useMemo(() => {
+    const map: Record<string, { total: number; solved: number; scores: number[]; times: number[] }> = {};
+    for (const d of filtered) {
+      if (!map[d.memoreto]) map[d.memoreto] = { total: 0, solved: 0, scores: [], times: [] };
+      map[d.memoreto].total++;
+      if (d.score > 0) { map[d.memoreto].solved++; map[d.memoreto].scores.push(d.score); }
+      map[d.memoreto].times.push(d.time_seconds);
+    }
+    return Object.entries(map).sort((a, b) => b[1].total - a[1].total);
+  }, [filtered]);
 
-  // Scatter traces
-  const groups: Record<string, { x: number[]; y: number[]; text: string[] }> = {};
-  for (const d of scatter) {
-    const key = d.dificultad || 'desconocido';
-    if (!groups[key]) groups[key] = { x: [], y: [], text: [] };
-    groups[key].x.push(d.time_seconds);
-    groups[key].y.push(d.score);
-    groups[key].text.push(`${d.username} · ${d.memoreto}`);
-  }
-  const colorMap: Record<string, string> = { easy: '#15803d', medium: '#825500', hard: '#ba1a1a' };
-  const scatterTraces: Plotly.Data[] = Object.entries(groups).map(([dif, vals]) => ({
+  const memoNames = byMemo.map(([name]) => name.length > 18 ? name.slice(0, 18) + '…' : name);
+  const memoFullNames = byMemo.map(([name]) => name);
+
+  const intentosPorMemoTrace: Plotly.Data[] = [{
+    type: 'bar', orientation: 'h',
+    x: byMemo.map(([, v]) => v.total),
+    y: memoNames,
+    customdata: memoFullNames,
+    text: byMemo.map(([, v]) => String(v.total)),
+    textposition: 'outside',
+    hovertemplate: '<b>%{customdata}</b><br>Intentos: %{x}<extra></extra>',
+    marker: { color: byMemo.map(([, v]) => {
+      const rate = v.total ? v.solved / v.total : 0;
+      return rate > 0.6 ? '#15803d' : rate > 0.3 ? '#b45309' : '#ba1a1a';
+    })},
+  }];
+
+  // ── Chart 2: Tasa de resolución por memoreto ──────────────────────────────
+  const resolucionTrace: Plotly.Data[] = [{
+    type: 'bar', orientation: 'h',
+    x: byMemo.map(([, v]) => v.total ? Math.round((v.solved / v.total) * 100) : 0),
+    y: memoNames,
+    customdata: memoFullNames,
+    text: byMemo.map(([, v]) => `${v.total ? Math.round((v.solved / v.total) * 100) : 0}%`),
+    textposition: 'outside',
+    hovertemplate: '<b>%{customdata}</b><br>Tasa: %{x}%<extra></extra>',
+    marker: { color: '#550042' },
+  }];
+
+  // ── Chart 3: Tiempo promedio por dificultad ───────────────────────────────
+  const tiempoPorDifTraces: Plotly.Data[] = Object.entries(
+    filtered.reduce<Record<string, number[]>>((acc, d) => {
+      const k = d.dificultad || 'desconocido';
+      if (!acc[k]) acc[k] = [];
+      acc[k].push(d.time_seconds);
+      return acc;
+    }, {})
+  ).map(([dif, times]) => ({
+    type: 'box',
+    name: DIFS[dif] || dif,
+    y: times,
+    boxpoints: 'outliers',
+    marker: { color: DIF_COLOR[dif] || '#550042' },
+    line: { color: DIF_COLOR[dif] || '#550042' },
+    hovertemplate: `<b>${DIFS[dif] || dif}</b><br>Tiempo: %{y}s<extra></extra>`,
+  } as Plotly.Data));
+
+  // ── Chart 4: Scatter tiempo vs puntuación (filtrado) ─────────────────────
+  const scatterTraces: Plotly.Data[] = Object.entries(
+    filtered.filter(d => d.score > 0).reduce<Record<string, { x: number[]; y: number[]; text: string[] }>>((acc, d) => {
+      const k = d.dificultad || 'desconocido';
+      if (!acc[k]) acc[k] = { x: [], y: [], text: [] };
+      acc[k].x.push(d.time_seconds);
+      acc[k].y.push(d.score);
+      acc[k].text.push(`${d.username} · ${d.memoreto}`);
+      return acc;
+    }, {})
+  ).map(([dif, vals]) => ({
     type: 'scatter', mode: 'markers',
     name: DIFS[dif] || dif,
     x: vals.x, y: vals.y, text: vals.text,
     hovertemplate: '<b>%{text}</b><br>Tiempo: %{x}s<br>Puntuación: %{y}<extra></extra>',
-    marker: { size: 8, color: colorMap[dif] || '#550042', opacity: 0.8 },
+    marker: { size: 9, color: DIF_COLOR[dif] || '#550042', opacity: 0.85 },
   } as Plotly.Data));
 
-  // Progreso traces
-  const progresoTraces: Plotly.Data[] = Object.entries(progreso).map(([username, entries], i) => ({
+  // ── Chart 5: Progreso por estudiante (filtrado por usuario) ───────────────
+  const progresoEntries = Object.entries(progreso)
+    .filter(([u]) => filterUser === 'all' || u === filterUser);
+  const progresoTraces: Plotly.Data[] = progresoEntries.map(([username, entries], i) => ({
     type: 'scatter', mode: 'lines+markers',
     name: username,
     x: entries.map(e => e.date),
     y: entries.map(e => e.score_acumulado),
     hovertemplate: `<b>${username}</b><br>%{x}<br>Acumulado: %{y} pts<extra></extra>`,
     line: { color: LINE_COLORS[i % LINE_COLORS.length], width: 2 },
-    marker: { size: 5, color: LINE_COLORS[i % LINE_COLORS.length] },
+    marker: { size: 5 },
   } as Plotly.Data));
+
+  const barH = byMemo.length > 0 ? Math.max(260, byMemo.length * 36) : 260;
 
   return (
     <div className="page-content">
-      {/* Tarjetas métricas */}
+
+      {/* ── Métricas ──────────────────────────────────────────────────────── */}
       <div className="dash-stats-row">
         <div className="dash-stat-card">
           <div className="dash-stat-top"><span className="dash-stat-label">Jugadores totales</span></div>
@@ -87,55 +155,72 @@ export default function EstadisticasPage({ users, memos, scatter, progreso }: Pr
           <div className="dash-stat-foot"><span className="dash-stat-sub">Promedio {avg.toLocaleString()} pts</span></div>
         </div>
         <div className="dash-stat-card">
-          <div className="dash-stat-top"><span className="dash-stat-label">Puntuación promedio</span></div>
-          <div className="dash-stat-value" style={{ color: 'var(--tertiary)' }}>{avg.toLocaleString()}</div>
-          <div className="dash-stat-foot"><span className="dash-stat-sub">Global</span></div>
-        </div>
-        <div className="dash-stat-card">
           <div className="dash-stat-top"><span className="dash-stat-label">Puntaje más alto</span></div>
           <div className="dash-stat-value" style={{ color: 'var(--secondary)' }}>{top.toLocaleString()}</div>
           <div className="dash-stat-foot"><span className="dash-stat-sub">{users[0] ? '@' + users[0].username : '—'}</span></div>
         </div>
         <div className="dash-stat-card">
-          <div className="dash-stat-top"><span className="dash-stat-label">Mis memoretos</span></div>
-          <div className="dash-stat-value" style={{ color: '#15803d' }}>{memos.length}</div>
-          <div className="dash-stat-foot"><span className="dash-stat-sub">{published} publicados</span></div>
+          <div className="dash-stat-top"><span className="dash-stat-label">Intentos registrados</span></div>
+          <div className="dash-stat-value" style={{ color: 'var(--tertiary)' }}>{totalAttempts}</div>
+          <div className="dash-stat-foot"><span className="dash-stat-sub">{solvedAttempts} resueltos</span></div>
+        </div>
+        <div className="dash-stat-card">
+          <div className="dash-stat-top"><span className="dash-stat-label">Tasa de resolución</span></div>
+          <div className="dash-stat-value" style={{ color: solveRate >= 50 ? '#15803d' : '#ba1a1a' }}>{solveRate}%</div>
+          <div className="dash-stat-foot">
+            <div className="dash-stat-bar-track"><div className="dash-stat-bar-fill" style={{ width: `${solveRate}%`, background: solveRate >= 50 ? '#15803d' : '#ba1a1a' }} /></div>
+          </div>
         </div>
       </div>
 
-      {/* Barchart + Ranking */}
-      <div className="dash-main">
-        <div className="dash-chart-card">
-          <div className="dash-chart-header">
-            <div className="dash-tabs">
-              <button className={tab === 'puntajes' ? 'active' : ''} onClick={() => setTab('puntajes')}>Puntajes</button>
-              <button className={tab === 'dificultad' ? 'active' : ''} onClick={() => setTab('dificultad')}>Por Dificultad</button>
-            </div>
-          </div>
-          {chartData.length === 0 ? (
-            <p className="empty">Sin datos para mostrar</p>
-          ) : (
-            <svg width="100%" height={chartH + 40} style={{ overflow: 'visible' }}>
-              {chartData.map((item, i) => (
-                <g key={item.label}>
-                  <rect x={barX(i)} y={barY(item.value)} width={barW} height={barH(item.value)} fill={item.color} rx={4} />
-                  <text x={barX(i) + barW / 2} y={chartH + 16} textAnchor="middle" fontSize={10} fill="var(--on-surface-variant)">
-                    {item.label}
-                  </text>
-                </g>
-              ))}
-            </svg>
-          )}
+      {/* ── Barra de filtros ──────────────────────────────────────────────── */}
+      <div className="filter-bar">
+        <span className="filter-bar-label">Filtros</span>
+        <div className="filter-group">
+          <label>Dificultad</label>
+          <select value={filterDif} onChange={e => setFilterDif(e.target.value)}>
+            <option value="all">Todas</option>
+            <option value="easy">Fácil</option>
+            <option value="medium">Medio</option>
+            <option value="hard">Difícil</option>
+          </select>
         </div>
+        <div className="filter-group">
+          <label>Estudiante</label>
+          <select value={filterUser} onChange={e => setFilterUser(e.target.value)}>
+            <option value="all">Todos</option>
+            {allUsers.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
+        </div>
+        <label className="filter-check">
+          <input type="checkbox" checked={filterSolved} onChange={e => setFilterSolved(e.target.checked)} />
+          Solo intentos resueltos
+        </label>
+        {(filterDif !== 'all' || filterUser !== 'all' || filterSolved) && (
+          <button className="filter-clear" onClick={() => { setFilterDif('all'); setFilterUser('all'); setFilterSolved(false); }}>
+            × Limpiar
+          </button>
+        )}
+        <span className="filter-count">{filtered.length} registros</span>
+      </div>
 
+      {/* ── Fila principal: intentos + ranking ────────────────────────────── */}
+      <div className="dash-main" style={{ marginBottom: '1.5rem' }}>
+        <div className="dash-chart-card" style={{ padding: '1.25rem' }}>
+          <div className="dash-card-title" style={{ marginBottom: '1rem' }}>Intentos por Memoreto</div>
+          {byMemo.length === 0
+            ? <p className="empty">Sin datos con los filtros actuales</p>
+            : <PlotlyChart data={intentosPorMemoTrace} height={barH}
+                layout={{ ...LAYOUT_BASE, margin: { t: 10, r: 60, b: 32, l: 160 },
+                  xaxis: { ...LAYOUT_BASE.xaxis, title: { text: 'Intentos' } } as Partial<Plotly.LayoutAxis>,
+                  yaxis: { ...LAYOUT_BASE.yaxis, automargin: true } as Partial<Plotly.LayoutAxis> }} />}
+        </div>
         <div className="dash-ranking-card">
           <div className="dash-ranking-title">🏅 Ranking Global</div>
           <div className="dash-ranking-list">
             {users.slice(0, 7).map((u, i) => (
               <div key={u.id} className="dash-rank-row">
-                <span className="dash-rank-pos">
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
-                </span>
+                <span className="dash-rank-pos">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</span>
                 <div className="dash-rank-info">
                   <span className="dash-rank-name">{u.name} {u.lastname}</span>
                   <span className="dash-rank-user">@{u.username}</span>
@@ -148,87 +233,102 @@ export default function EstadisticasPage({ users, memos, scatter, progreso }: Pr
         </div>
       </div>
 
-      {/* Bottom row */}
-      <div className="dash-bottom-row" style={{ marginBottom: '2rem' }}>
-        <div className="dash-bottom-card">
-          <div className="dash-card-title">Memoretos por Dificultad</div>
-          {difEntries.length === 0 ? <p className="empty">Sin memoretos</p> : difEntries.map(([k, v]) => (
-            <div key={k} className="diff-row">
-              <span className="diff-label" style={{ color: DIF_COLOR[k] }}>{DIFS[k] || k}</span>
-              <div className="diff-bar-track">
-                <div className="diff-bar-fill" style={{ width: `${memos.length ? Math.round((v / memos.length) * 100) : 0}%`, background: DIF_COLOR[k] }} />
-              </div>
-              <span className="diff-count">{v}</span>
-            </div>
-          ))}
-        </div>
-        <div className="dash-bottom-card">
-          <div className="dash-card-title">Estado de Publicación</div>
-          <div className="memo-status-grid">
-            <div className="memo-status-item">
-              <span className="memo-status-num" style={{ color: '#15803d' }}>{published}</span>
-              <span className="memo-status-lbl">Publicados</span>
-            </div>
-            <div className="memo-status-item">
-              <span className="memo-status-num" style={{ color: 'var(--secondary)' }}>{memos.length - published}</span>
-              <span className="memo-status-lbl">Borradores</span>
-            </div>
-            <div className="memo-status-item">
-              <span className="memo-status-num">{memos.length}</span>
-              <span className="memo-status-lbl">Total</span>
-            </div>
+      {/* ── Tasa de resolución por memoreto ───────────────────────────────── */}
+      <div className="dash-plotly-card" style={{ marginBottom: '1.5rem' }}>
+        <div className="dash-plotly-header">
+          <span className="material-symbols-outlined dash-plotly-icon">verified</span>
+          <div>
+            <div className="dash-card-title" style={{ marginBottom: '.2rem' }}>Tasa de Resolución por Memoreto</div>
+            <p className="dash-plotly-desc">Porcentaje de intentos que resultaron en solución correcta. Identifica qué memoretos son más difíciles.</p>
           </div>
-          {memos.length > 0 && (
-            <>
-              <div className="pub-progress-track">
-                <div className="pub-progress-fill" style={{ width: `${pubPct}%` }} />
-              </div>
-              <p className="pub-pct">{pubPct}% publicado</p>
-            </>
-          )}
         </div>
+        {byMemo.length === 0
+          ? <p className="empty">Sin datos con los filtros actuales</p>
+          : <PlotlyChart data={resolucionTrace} height={barH}
+              layout={{ ...LAYOUT_BASE, margin: { t: 10, r: 60, b: 32, l: 160 },
+                xaxis: { ...LAYOUT_BASE.xaxis, title: { text: '% Resueltos' }, range: [0, 110] } as Partial<Plotly.LayoutAxis>,
+                yaxis: { ...LAYOUT_BASE.yaxis, automargin: true } as Partial<Plotly.LayoutAxis> }} />}
       </div>
 
-      {/* Scatter plot */}
-      <div className="dash-plotly-section">
-        <div className="dash-plotly-card">
-          <div className="dash-plotly-header">
-            <span className="material-symbols-outlined dash-plotly-icon">scatter_plot</span>
-            <div>
-              <div className="dash-card-title" style={{ marginBottom: '.25rem' }}>Tiempo vs Puntuación por Dificultad</div>
-              <p className="dash-plotly-desc">Cada punto es un intento resuelto. Eje X: tiempo empleado (seg), Eje Y: puntuación.</p>
-            </div>
+      {/* ── Distribución de tiempo por dificultad (box plot) ──────────────── */}
+      <div className="dash-plotly-card" style={{ marginBottom: '1.5rem' }}>
+        <div className="dash-plotly-header">
+          <span className="material-symbols-outlined dash-plotly-icon">timer</span>
+          <div>
+            <div className="dash-card-title" style={{ marginBottom: '.2rem' }}>Distribución de Tiempo por Dificultad</div>
+            <p className="dash-plotly-desc">Diagrama de caja del tiempo empleado agrupado por dificultad. Muestra mediana, cuartiles y valores atípicos.</p>
           </div>
-          {scatter.length === 0 ? <p className="empty">Sin datos de intentos resueltos</p> : (
-            <PlotlyChart data={scatterTraces} height={340} title="Tiempo vs Puntuación"
-              layout={{ xaxis: { title: { text: 'Tiempo (segundos)' } } as Plotly.LayoutAxis, yaxis: { title: { text: 'Puntuación' } } as Plotly.LayoutAxis }} />
-          )}
         </div>
+        {tiempoPorDifTraces.length === 0
+          ? <p className="empty">Sin datos con los filtros actuales</p>
+          : <PlotlyChart data={tiempoPorDifTraces} height={300}
+              layout={{ ...LAYOUT_BASE,
+                yaxis: { ...LAYOUT_BASE.yaxis, title: { text: 'Tiempo (segundos)' } } as Partial<Plotly.LayoutAxis>,
+                xaxis: { ...LAYOUT_BASE.xaxis } as Partial<Plotly.LayoutAxis> }} />}
       </div>
 
-      {/* Progreso line */}
-      <div className="dash-plotly-section">
-        <div className="dash-plotly-card">
-          <div className="dash-plotly-header">
-            <span className="material-symbols-outlined dash-plotly-icon">show_chart</span>
-            <div>
-              <div className="dash-card-title" style={{ marginBottom: '.25rem' }}>Progreso de Puntaje Acumulado por Estudiante</div>
-              <p className="dash-plotly-desc">Evolución del puntaje acumulado de cada estudiante a lo largo del tiempo.</p>
-            </div>
+      {/* ── Scatter tiempo vs puntuación ──────────────────────────────────── */}
+      <div className="dash-plotly-card" style={{ marginBottom: '1.5rem' }}>
+        <div className="dash-plotly-header">
+          <span className="material-symbols-outlined dash-plotly-icon">scatter_plot</span>
+          <div>
+            <div className="dash-card-title" style={{ marginBottom: '.2rem' }}>Tiempo vs Puntuación (intentos resueltos)</div>
+            <p className="dash-plotly-desc">Cada punto es un intento resuelto. Permite ver si los estudiantes más rápidos obtienen mejores puntajes.</p>
           </div>
-          {progresoTraces.length === 0 ? <p className="empty">Sin datos de progreso de estudiantes</p> : (
-            <PlotlyChart data={progresoTraces} height={340} title="Progreso acumulado"
-              layout={{ xaxis: { title: { text: 'Fecha' }, type: 'date' } as Plotly.LayoutAxis, yaxis: { title: { text: 'Puntaje Acumulado' } } as Plotly.LayoutAxis }} />
-          )}
         </div>
+        {scatterTraces.length === 0
+          ? <p className="empty">Sin intentos resueltos con los filtros actuales</p>
+          : <PlotlyChart data={scatterTraces} height={320}
+              layout={{ ...LAYOUT_BASE,
+                xaxis: { ...LAYOUT_BASE.xaxis, title: { text: 'Tiempo (segundos)' } } as Partial<Plotly.LayoutAxis>,
+                yaxis: { ...LAYOUT_BASE.yaxis, title: { text: 'Puntuación' } } as Partial<Plotly.LayoutAxis> }} />}
+      </div>
+
+      {/* ── Progreso acumulado ────────────────────────────────────────────── */}
+      <div className="dash-plotly-card" style={{ marginBottom: '2rem' }}>
+        <div className="dash-plotly-header">
+          <span className="material-symbols-outlined dash-plotly-icon">show_chart</span>
+          <div>
+            <div className="dash-card-title" style={{ marginBottom: '.2rem' }}>Progreso de Puntaje Acumulado</div>
+            <p className="dash-plotly-desc">Evolución del puntaje acumulado por estudiante. Usa el filtro de estudiante para enfocarte en uno.</p>
+          </div>
+        </div>
+        {progresoTraces.length === 0
+          ? <p className="empty">Sin datos de progreso</p>
+          : <PlotlyChart data={progresoTraces} height={320}
+              layout={{ ...LAYOUT_BASE,
+                xaxis: { ...LAYOUT_BASE.xaxis, title: { text: 'Fecha' }, type: 'date' } as Partial<Plotly.LayoutAxis>,
+                yaxis: { ...LAYOUT_BASE.yaxis, title: { text: 'Puntaje acumulado' } } as Partial<Plotly.LayoutAxis> }} />}
       </div>
 
       <style>{`
-        .dash-plotly-section { margin-bottom: 1.5rem; }
         .dash-plotly-card { background: var(--surface-container-lowest); border: 1px solid var(--outline-variant); border-radius: var(--r-xl); padding: 1.5rem; }
         .dash-plotly-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem; }
         .dash-plotly-icon { font-size: 1.75rem; color: var(--primary); background: rgba(85,0,66,.08); padding: .5rem; border-radius: var(--r-lg); flex-shrink: 0; }
         .dash-plotly-desc { font-size: .8rem; color: var(--on-surface-variant); line-height: 1.5; }
+        .dash-stat-bar-track { height: 4px; background: var(--surface-container); border-radius: 99px; margin-top: .35rem; overflow: hidden; }
+        .dash-stat-bar-fill { height: 100%; border-radius: 99px; transition: width .4s; }
+
+        /* Filter bar */
+        .filter-bar {
+          display: flex; align-items: center; flex-wrap: wrap; gap: .75rem;
+          background: var(--surface-container); border: 1px solid var(--outline-variant);
+          border-radius: var(--r-xl); padding: .75rem 1.25rem; margin-bottom: 1.5rem;
+        }
+        .filter-bar-label { font-size: .75rem; font-weight: 700; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: .06em; margin-right: .25rem; }
+        .filter-group { display: flex; align-items: center; gap: .4rem; }
+        .filter-group label { font-size: .78rem; color: var(--on-surface-variant); white-space: nowrap; }
+        .filter-group select {
+          background: var(--surface-container-lowest); border: 1px solid var(--outline-variant);
+          color: var(--on-surface); border-radius: var(--r-md); padding: .3rem .6rem; font-size: .82rem;
+        }
+        .filter-check { display: flex; align-items: center; gap: .4rem; font-size: .82rem; color: var(--on-surface); cursor: pointer; }
+        .filter-check input { accent-color: var(--primary); cursor: pointer; }
+        .filter-clear {
+          background: var(--error-container); color: var(--error); border: none;
+          border-radius: var(--r-md); padding: .3rem .7rem; font-size: .78rem; cursor: pointer;
+        }
+        .filter-count { margin-left: auto; font-size: .75rem; color: var(--on-surface-variant); }
       `}</style>
     </div>
   );

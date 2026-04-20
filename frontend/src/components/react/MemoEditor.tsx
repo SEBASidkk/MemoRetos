@@ -12,12 +12,19 @@ interface MemoForm {
   is_published: boolean;
 }
 
+type StoredShape = {
+  _geo?: object; center?: number[]; size?: number[]; rotation?: number;
+  id: number; type: Shape['type']; color: string; operacion: Shape['operacion']; target: number; nodos?: number[];
+};
+
 interface Props {
   memoId?: string;
   initialData?: {
     title: string; nivel: number; fase: number; dificultad: string;
     is_published: boolean; number_set?: number[];
-    figuras?: { _geo?: object; id: number; type: Shape['type']; color: string; operacion: Shape['operacion']; target: number; nodos?: number[] }[];
+    figuras?: StoredShape[];
+    // Unity/server format
+    shapes?: StoredShape[];
   };
 }
 
@@ -31,14 +38,15 @@ export default function MemoEditor({ memoId, initialData }: Props) {
     is_published: initialData?.is_published ?? false,
   });
 
-  const [canvasFigures, setCanvasFigures] = useState<object[]>(initialData?.figuras ?? []);
+  const [canvasFigures, setCanvasFigures] = useState<object[]>(initialData?.figuras ?? initialData?.shapes ?? []);
   const [canvasSolution, setCanvasSolution] = useState<Record<number, number> | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState('');
 
   const initialShapes = useMemo<Shape[]>(() => {
-    if (!initialData?.figuras?.length) return [];
-    return figuraToShapes(initialData.figuras as Parameters<typeof figuraToShapes>[0]);
+    const src = initialData?.figuras ?? initialData?.shapes ?? [];
+    if (!src.length) return [];
+    return figuraToShapes(src as Parameters<typeof figuraToShapes>[0]);
   }, []);
 
   const parsedNumberSet = useMemo<number[]>(() => {
