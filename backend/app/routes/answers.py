@@ -157,10 +157,10 @@ def enviar_respuesta():
         }), 200
 
     # 10. Calcular puntaje
-    penalty_per_second = config["max_score"] / config["time_limit"]
-    raw_score = config["max_score"] - (time_taken * penalty_per_second)
-    final_score = max(config["min_score"], math.floor(raw_score))
-    time_penalty = math.floor(time_taken * penalty_per_second)
+    # Sin penalización los primeros 60 segundos; después -1 pt por segundo extra
+    grace_period = 60
+    time_penalty = max(0, time_taken - grace_period)
+    final_score  = max(config["min_score"], config["max_score"] - time_penalty)
 
     # 11. Actualizar puntaje total del usuario
     user.total_score = (user.total_score or 0) + final_score

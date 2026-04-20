@@ -676,55 +676,23 @@ with app.app_context():
         created_by=docente.id,
     )
 
-    memo5bb = Memoreto(#M
-        title="Circulo Triangulo y Rectangulo",
-        descripcion="Coloca los numeros del 1 al 10 en los 10 nodos de interseccion. El circulo, el triangulo y el rectangulo deben sumar 38 cada uno.",
-        nivel=5, fase=2, dificultad="hard",
-        figuras_json=json.dumps({
-            "shapes": [
-                {"id": 1, "type": "hexagono",    "color": "#3B82F6", "operacion": "suma", "target": 245,
-                 "center": [ -0.4, 0.9, 0], "size": [2, 2, 1], "rotation": 90},
-                {"id": 2, "type": "pentagono",    "color": "#3B82F6", "operacion": "suma", "target": 245,
-                 "center": [ -0.3, -0.1, 0], "size": [4, 2.3, 1], "rotation": 180},
-                {"id": 3, "type": "triangulo",    "color": "#3B82F6", "operacion": "suma", "target": 245,
-                 "center": [ -1.5, 0.0, 0], "size": [3, 2, 1], "rotation": 126},
-                {"id": 4, "type": "rectangulo",    "color": "#3B82F6", "operacion": "suma", "target": 245,
-                 "center": [ 0.5, 0.0, 0], "size": [2, 2.5, 1]},
-                
-            ],
-        }),
-        number_set=json.dumps(list(range(7,77))),
-        solution_json=json.dumps({
-            # Triple(1,2,3)             — 2 nodos, suma=4
-            "Nodo_1_2_3_0":  1, "Nodo_1_2_3_1":  3,
-            # Circulo(1) ∩ Triangulo(2) — 4 nodos, suma=17
-            "Nodo_1_2_0":    2, "Nodo_1_2_1":    4, "Nodo_1_2_2":  5, "Nodo_1_2_3":  6,
-            # Circulo(1) ∩ Rect(3)      — 2 nodos, suma=17
-            "Nodo_1_3_0":    7, "Nodo_1_3_1":   10,
-            # Triangulo(2) ∩ Rect(3)    — 2 nodos, suma=17
-            "Nodo_2_3_0":    8, "Nodo_2_3_1":    9,
-        }),
-        is_validated=True, is_published=True,
-        created_by=docente.id,
-    )
-
     # Memoreto 5BB: Hexagono + Pentagono + Triangulo + Rectangulo — 12 nodos (2 por par)
     # 4 figuras, C(4,2)=6 pares × 2 nodos = 12 nodos. Multiplos de 7: {7..84}, suma=546
     # 4×target = 2×546 → target=273. Cada par suma 546/6=91: complementarios (x, 91-x)
-    memo5bb = Memoreto(
+    memo5bb = Memoreto(#M8
         title="Hexagono Pentagono Triangulo y Rectangulo",
         descripcion="Coloca los multiplos de 7 del 7 al 84 en los 12 nodos de interseccion. El hexagono, el pentagono, el triangulo y el rectangulo deben sumar 273 cada uno.",
         nivel=5, fase=2, dificultad="hard",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "hexagono",   "color": "#3B82F6", "operacion": "suma", "target": 273,
-                 "center": [0.0, 0.0, 0], "size": [3.0, 3.0, 1]},
+                 "center": [-0.4, 0.9, 0], "size": [2, 2, 1], "rotation": 90},
                 {"id": 2, "type": "pentagono",  "color": "#A855F7", "operacion": "suma", "target": 273,
-                 "center": [0.0, 0.0, 0], "size": [2.5, 2.5, 1]},
+                 "center": [-0.3, -0.1, 0], "size": [4, 2.3, 1], "rotation": 180},
                 {"id": 3, "type": "triangulo",  "color": "#EF4444", "operacion": "suma", "target": 273,
-                 "center": [0.0, 0.0, 0], "size": [3.0, 3.0, 1]},
+                 "center": [-1.5, 0.0, 0], "size": [3, 2, 1], "rotation": 126},
                 {"id": 4, "type": "rectangulo", "color": "#10B981", "operacion": "suma", "target": 273,
-                 "center": [0.0, 0.0, 0], "size": [3.5, 2.5, 1]},
+                 "center": [0.5, 0.0, 0], "size": [2, 2.5, 1]},
             ],
         }),
         number_set=json.dumps([7,14,21,28,35,42,49,56,63,70,77,84]),
