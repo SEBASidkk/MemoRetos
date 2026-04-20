@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 
+export const prerender = false;
+
 const BACKEND = 'http://localhost:5000';
 
 export const ALL: APIRoute = async ({ request, locals, params }) => {
