@@ -70,11 +70,33 @@ with app.app_context():
 
     # ── Memoretos en formato server.py: shapes + nodos con posiciones explícitas ─
 
+    # Memoreto Tutorial: 2 circulos — 2 nodos, nivel=0
+    # 2×target = 2×sum(1,2) → target=3
+    memo_tutorial = Memoreto(
+        title="Tutorial",
+        descripcion="Coloca los numeros 1 y 2 en los nodos. Cada circulo debe sumar 3.",
+        nivel=0, fase=1, dificultad="easy",
+        figuras_json=json.dumps({
+            "shapes": [
+                {"id": 1, "type": "circulo", "color": "#3366E6", "operacion": "suma", "target": 3,
+                 "center": [-1.0, 0.0, 0], "size": [2.5, 2.5, 1]},
+                {"id": 2, "type": "circulo", "color": "#E63363", "operacion": "suma", "target": 3,
+                 "center": [ 1.0, 0.0, 0], "size": [2.5, 2.5, 1]},
+            ],
+        }),
+        number_set=json.dumps([1, 2]),
+        solution_json=json.dumps({
+            "Nodo_1_2_0": 1, "Nodo_1_2_1": 2,
+        }),
+        is_validated=True, is_published=True,
+        created_by=docente.id,
+    )
+
     #memoretos nivel 1
     # Memoreto 1: 3 circulos entrelazados, 6 puntos de interseccion
     memo1aa = Memoreto(#jala perron M1
         title="Tres Circulos Entrelazados",
-        descripcion="Coloca los numeros del 1 al 6 en los nodos de interseccion. Cada circulo debe sumar exactamente 14.",
+        descripcion="Coloca los numeros del 1 al 6 en los 6 nodos de interseccion. Cada circulo debe sumar exactamente 14.",
         nivel=1, fase=1, dificultad="easy",
         figuras_json=json.dumps({
             "shapes": [
@@ -470,36 +492,6 @@ with app.app_context():
         created_by=docente.id,
     )
 
-    memo4ab = Memoreto(#M12 PENDIENTE
-        title="Cinco Rectangulos",
-        descripcion="Coloca los multiplos de 5 del 5 al 60 en los 12 nodos de interseccion. Los cinco rectangulos deben sumar 156 cada uno.",
-        nivel=4, fase=1, dificultad="medium",
-        figuras_json=json.dumps({
-            "shapes": [
-                {"id": 1, "type": "rectangulo",    "color": "#3B82F6", "operacion": "suma", "target": 156,
-                 "center": [0.0,  0.0, 0], "size": [1, 1, 1]},
-                {"id": 2, "type": "rectangulo",    "color": "#3B82F6", "operacion": "suma", "target": 156,
-                 "center": [1,  0.0, 0], "size": [1, 1, 1]},
-                {"id": 3, "type": "rectangulo",    "color": "#3B82F6", "operacion": "suma", "target": 156,
-                 "center": [-1,  0.0, 0], "size": [1, 1, 1]},
-                {"id": 4, "type": "rectangulo",    "color": "#3B82F6", "operacion": "suma", "target": 156,
-                 "center": [0.0,  -1, 0], "size": [1, 1, 1]},
-                {"id": 5, "type": "rectangulo",    "color": "#3B82F6", "operacion": "suma", "target": 156,
-                 "center": [0.0,  1, 0], "size": [1, 1, 1]}, 
-            ],
-        }),
-        number_set=json.dumps([5,10,15,20,25,30,35,40,45,50,55,60]),
-        solution_json=json.dumps({
-            # Circulo(1)    ∩ Triangulo(2)  — 2 nodos, suma=7
-            "Nodo_1_2_0": 1, "Nodo_1_2_1": 6,
-            # Circulo(1)    ∩ Rectangulo(3) — 2 nodos, suma=7
-            "Nodo_1_3_0": 2, "Nodo_1_3_1": 5,
-            # Triangulo(2)  ∩ Rectangulo(3) — 2 nodos, suma=7
-            "Nodo_2_3_0": 3, "Nodo_2_3_1": 4,
-        }),
-        is_validated=True, is_published=True,
-        created_by=docente.id,
-    )
 
     # Memoreto 4BA: 2 Circulos + 2 Triangulos — 12 nodos
     # 4 figuras, cada par tiene 2 intersecciones → C(4,2)×2 = 6 pares × 2 = 12 nodos
@@ -585,7 +577,7 @@ with app.app_context():
     # C∩T=3, C∩R=4, T∩R=4. Suma 1..11=66. 3×target=2×66 → target=44
     # S_12=S_13=S_23=22: Group_12={3,8,11}, Group_13={1,4,7,10}, Group_23={2,5,6,9}
     memo5aa = Memoreto(#M15
-        title="Circulo Triangulo y Rectangulo",
+        title="Circulo Triangulo y Rectangulo Asimetrico",
         descripcion="Coloca los numeros del 1 al 11 en los 11 nodos de interseccion. El circulo, el triangulo y el rectangulo deben sumar 44 cada uno.",
         nivel=5, fase=1, dificultad="hard",
         figuras_json=json.dumps({
@@ -648,7 +640,7 @@ with app.app_context():
     # S_123=4, S_12=S_13=S_23=17 → target=4+17+17=38 ✓
     # Triple:{1,3}, Pair12:{2,4,5,6}, Pair13:{7,10}, Pair23:{8,9}
     memo5ba = Memoreto(#M17
-        title="Circulo Triangulo y Rectangulo",
+        title="Circulo Triangulo y Rectangulo Superpuestos",
         descripcion="Coloca los numeros del 1 al 10 en los 10 nodos de interseccion. El circulo, el triangulo y el rectangulo deben sumar 38 cada uno.",
         nivel=5, fase=2, dificultad="hard",
         figuras_json=json.dumps({
@@ -708,8 +700,38 @@ with app.app_context():
         created_by=docente.id,
     )
 
-    all_memos = [memo1aa, memo1ab, memo1ba, memo1bb, memo2aa, memo2ab, memo2ba, memo2bb, memo3aa, memo3ab, memo3ba, memo3bb, memo4aa,
-                  memo4ab, memo4ba,memo4bb,memo5aa,memo5ab,memo5ba,memo5bb]
+    # Memoreto 5BC: Circulo + Pentagono + Rectangulo — 8 nodos (2+2+4 por par)
+    # C∩P=2, C∩R=2, P∩R=4. Suma 1..8=36. 3×24=72=2×36 ✓
+    # Cada par suma 12: C∩P={4,8}, C∩R={5,7}, P∩R={1,2,3,6}
+    memo4ab = Memoreto(#M21
+        title="Pentagono Rectangulo y Circulo",
+        descripcion="Coloca los numeros del 1 al 8 en los 8 nodos de interseccion. El pentagono, el rectangulo y el circulo deben sumar 24 cada uno.",
+        nivel=4, fase=1, dificultad="hard",
+        figuras_json=json.dumps({
+            "shapes": [
+                {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 24,
+                 "center": [-1, 0.0, 0], "size": [5, 5, 1]},
+                {"id": 2, "type": "pentagono",  "color": "#A855F7", "operacion": "suma", "target": 24,
+                 "center": [0.8, -0.4, 0], "size": [6, 6, 1], "rotation": 180},
+                {"id": 4, "type": "rectangulo", "color": "#10B981", "operacion": "suma", "target": 24,
+                 "center": [1.8, -0.8, 0], "size": [2, 6, 1]},
+            ],
+        }),
+        number_set=json.dumps([1, 2, 3, 4, 5, 6, 7, 8]),
+        solution_json=json.dumps({
+            # Circulo(1) ∩ Pentagono(2) — 2 nodos, suma=12
+            "Nodo_1_2_0": 4, "Nodo_1_2_1": 8,
+            # Circulo(1) ∩ Rectangulo(4) — 2 nodos, suma=12
+            "Nodo_1_4_0": 5, "Nodo_1_4_1": 7,
+            # Pentagono(2) ∩ Rectangulo(4) — 4 nodos, suma=12
+            "Nodo_2_4_0": 1, "Nodo_2_4_1": 2, "Nodo_2_4_2": 3, "Nodo_2_4_3": 6,
+        }),
+        is_validated=True, is_published=True,
+        created_by=docente.id,
+    )
+
+    all_memos = [memo_tutorial, memo1aa, memo1ab, memo1ba, memo1bb, memo2aa, memo2ab, memo2ba, memo2bb, memo3aa, memo3ab, memo3ba, memo3bb, memo4aa,
+                 memo4ba,memo4bb,memo5aa,memo5ab,memo5ba,memo5bb,memo4ab]
     db.session.add_all(all_memos)
     db.session.commit()
     print(f"{len(all_memos)} memoretos creados.")
