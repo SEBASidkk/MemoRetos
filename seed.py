@@ -124,7 +124,7 @@ with app.app_context():
     memo1ab = Memoreto(#jala perron M4
         title="Triangulo Elipse y Rectangulo",
         descripcion="Coloca los numeros del 1 al 14 en los 14 nodos de interseccion. El triangulo, la elipse y el rectangulo deben sumar 70 cada uno.",
-        nivel=1, fase=1, dificultad="easy",
+        nivel=3, fase=1, dificultad="hard",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "triangulo",  "color": "#F59E0B", "operacion": "suma", "target": 70,
@@ -149,7 +149,7 @@ with app.app_context():
     memo1ba = Memoreto(#jala perron M3
         title="Tres Circulos y Triangulo",
         descripcion="Coloca los numeros del 1 al 12 en los 12 nodos de interseccion. Los tres circulos y el triangulo deben sumar 39 cada uno.",
-        nivel=1, fase=2, dificultad="easy",
+        nivel=3, fase=2, dificultad="hard",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",   "color": "#3B82F6", "operacion": "suma", "target": 39,
@@ -181,7 +181,7 @@ with app.app_context():
     memo1bb = Memoreto(#jala perron M5
         title="Circulo y Cruz",
         descripcion="Coloca los numeros del 1 al 12 en los 12 nodos de interseccion. El circulo y los dos rectangulos deben sumar 52 cada uno.",
-        nivel=1, fase=2, dificultad="easy",
+        nivel=2, fase=2, dificultad="medium",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 52,
@@ -208,7 +208,7 @@ with app.app_context():
     memo2aa = Memoreto(#
         title="Circulo Dos Triangulos y Rectangulo",
         descripcion="Coloca los numeros del 1 al 18 en los 18 nodos de interseccion. El circulo, los dos triangulos y el rectangulo deben sumar 91 cada uno.",
-        nivel=2, fase=1, dificultad="medium",
+        nivel=3, fase=1, dificultad="hard",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo", "color": "#22D3EE", "operacion": "suma", "target": 91,
@@ -244,7 +244,7 @@ with app.app_context():
     memo2ab = Memoreto(
         title="Dos Circulos y Dos Rectangulos",
         descripcion="Coloca los numeros del 1 al 16 en los 16 nodos de interseccion. Los dos circulos y los dos rectangulos deben sumar 68 cada uno.",
-        nivel=2, fase=1, dificultad="medium",
+        nivel=3, fase=1, dificultad="hard",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#22D3EE", "operacion": "suma", "target": 68,
@@ -280,7 +280,7 @@ with app.app_context():
     memo2ba = Memoreto(
         title="Triangulo y Dos Rectangulos",
         descripcion="Coloca los numeros del 1 al 14 en los 14 nodos de interseccion. El triangulo y los dos rectangulos deben sumar 70 cada uno.",
-        nivel=2, fase=2, dificultad="medium",
+        nivel=3, fase=2, dificultad="hard",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "triangulo",  "color": "#3B82F6", "operacion": "suma", "target": 70,
@@ -338,7 +338,7 @@ with app.app_context():
     memo3aa = Memoreto(#jala perron M19
         title="Triangulo con Dos Rectangulos",
         descripcion="Coloca los numeros del 1 al 9 en los 9 nodos de interseccion. El triangulo y los dos rectangulos deben sumar 30 cada uno.",
-        nivel=3, fase=1, dificultad="easy",
+        nivel=1, fase=2, dificultad="easy",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "triangulo",  "color": "#17651D", "operacion": "suma", "target": 30,
@@ -365,7 +365,7 @@ with app.app_context():
     memo3ab = Memoreto(#jala perron M20
         title="Circulo Rectangulo y Triangulo",
         descripcion="Coloca los numeros del 1 al 8 en los 8 nodos de interseccion. El circulo, el rectangulo y el triangulo deben sumar 24 cada uno.",
-        nivel=3, fase=1, dificultad="easy",
+        nivel=2, fase=1, dificultad="medium",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 24,
@@ -425,7 +425,7 @@ with app.app_context():
     memo3bb = Memoreto(#M10 
         title="Dos Circulos con Dos Triangulos Simetricos",
         descripcion="Coloca los numeros del 1 al 12 en los 12 nodos de interseccion. Los dos circulos y los dos triangulos deben sumar 39 cada uno.",
-        nivel=3, fase=2, dificultad="hard",
+        nivel=2, fase=2, dificultad="medium",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",   "color": "#3B82F6", "operacion": "suma", "target": 39,
@@ -468,7 +468,7 @@ with app.app_context():
     memo4aa = Memoreto(# M11
         title="Circulo Triangulo y Rectangulo",
         descripcion="Coloca los numeros del 1 al 6 en los 6 nodos de interseccion. El circulo, el triangulo y el rectangulo deben sumar 14 cada uno.",
-        nivel=4, fase=1, dificultad="medium",
+        nivel=1, fase=1, dificultad="easy",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 14,
@@ -500,7 +500,7 @@ with app.app_context():
     memo4ba = Memoreto(#M13
         title="Dos Circulos y Dos Triangulos",
         descripcion="Coloca los numeros del 1 al 12 en los 12 nodos de interseccion. Los dos circulos y los dos triangulos deben sumar 39 cada uno.",
-        nivel=4, fase=2, dificultad="hard",
+        nivel=3, fase=2, dificultad="hard",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 39,
@@ -541,7 +541,7 @@ with app.app_context():
     memo4bb = Memoreto(#M14
         title="Circulo y Tres Triangulos",
         descripcion="Coloca los numeros del 1 al 16 en los 16 nodos de interseccion. El circulo y los tres triangulos deben sumar 68 cada uno.",
-        nivel=4, fase=2, dificultad="hard",
+        nivel=2, fase=1, dificultad="medium",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",   "color": "#3B82F6", "operacion": "suma", "target": 68,
@@ -579,7 +579,7 @@ with app.app_context():
     memo5aa = Memoreto(#M15
         title="Circulo Triangulo y Rectangulo Asimetrico",
         descripcion="Coloca los numeros del 1 al 11 en los 11 nodos de interseccion. El circulo, el triangulo y el rectangulo deben sumar 44 cada uno.",
-        nivel=5, fase=1, dificultad="hard",
+        nivel=2, fase=1, dificultad="medium",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 44,
@@ -609,7 +609,7 @@ with app.app_context():
     memo5ab = Memoreto(#M16
         title="Dos Circulos y Rectangulo",
         descripcion="Coloca los numeros del 1 al 6 en los 6 nodos de interseccion. Los dos circulos y el rectangulo deben sumar 15 cada uno.",
-        nivel=5, fase=1, dificultad="hard",
+        nivel=1, fase=2, dificultad="easy",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 15,
@@ -642,7 +642,7 @@ with app.app_context():
     memo5ba = Memoreto(#M17
         title="Circulo Triangulo y Rectangulo Superpuestos",
         descripcion="Coloca los numeros del 1 al 10 en los 10 nodos de interseccion. El circulo, el triangulo y el rectangulo deben sumar 38 cada uno.",
-        nivel=5, fase=2, dificultad="hard",
+        nivel=1, fase=2, dificultad="easy",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 38,
@@ -674,7 +674,7 @@ with app.app_context():
     memo5bb = Memoreto(#M8
         title="Hexagono Pentagono Triangulo y Rectangulo",
         descripcion="Coloca los multiplos de 7 del 7 al 84 en los 12 nodos de interseccion. El hexagono, el pentagono, el triangulo y el rectangulo deben sumar 273 cada uno.",
-        nivel=5, fase=2, dificultad="hard",
+        nivel=3, fase=1, dificultad="hard",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "hexagono",   "color": "#3B82F6", "operacion": "suma", "target": 273,
@@ -706,7 +706,7 @@ with app.app_context():
     memo4ab = Memoreto(#M21
         title="Pentagono Rectangulo y Circulo",
         descripcion="Coloca los numeros del 1 al 8 en los 8 nodos de interseccion. El pentagono, el rectangulo y el circulo deben sumar 24 cada uno.",
-        nivel=4, fase=1, dificultad="hard",
+        nivel=1, fase=1, dificultad="easy",
         figuras_json=json.dumps({
             "shapes": [
                 {"id": 1, "type": "circulo",    "color": "#3B82F6", "operacion": "suma", "target": 24,
